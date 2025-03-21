@@ -51,19 +51,19 @@ function WorkflowCard({workflow}:{workflow:Workflow}) {
                 <Link href={`/workflow/editor/${workflow.id}`} className={cn(buttonVariants({variant:"outline",size:"sm"}),
             "flex items-center gap-2")}>
                     <ShuffleIcon size={16}/>Edit</Link>
-                    <WorkflowActions workflowName={workflow.name}/>
+                    <WorkflowActions workflowName={workflow.name} workflowId={workflow.id}/>
             </div>
         </CardContent>
     </Card>
   )
 }
 
-function WorkflowActions({workflowName}:{workflowName:string}){
+function WorkflowActions({workflowName,workflowId}:{workflowId:string; workflowName:string}){
     const [showDeleteDialog,setShowDeleteDialog]=useState(false);
      
     return (
         <>
-        <DeleteWorkflowDialog open={showDeleteDialog} setOpen={setShowDeleteDialog} workflowName={workflowName}/>
+        <DeleteWorkflowDialog open={showDeleteDialog} setOpen={setShowDeleteDialog} workflowName={workflowName} workflowId={workflowId}/>
     <DropdownMenu>
         <DropdownMenuTrigger asChild>
             <Button variant={"outline"} size={"sm"}>

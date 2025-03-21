@@ -21,13 +21,19 @@ interface Props{
     open:boolean;
     setOpen:(open:boolean)=>void;
     workflowName:string;
+    workflowId:string;
 }
-export default function DeleteWorkflowDialog({open,setOpen,workflowName}:Props) {
+export default function DeleteWorkflowDialog({open,setOpen,workflowName,workflowId}:Props) {
     const [confirmText,setConfirmText]=useState("");
     const deleteMutation=useMutation({
         mutationFn: DeleteWorkflow,
-        onSuccess: () => {},
-        onError:() => {},
+        onSuccess: () => {
+            toast.success("Workflow deleted successfully",{id:workflowId});
+            setConfirmText("");
+        },
+        onError:() => {
+            toast.error("Something went wrong",{id:workflowId});
+        },
     });
 
   return (
@@ -43,8 +49,8 @@ export default function DeleteWorkflowDialog({open,setOpen,workflowName}:Props) 
             </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction disabled={confirmText!==workflowName || deleteMutation.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={(e)=>{e.stopPropagation();toast.loading("Deleting workflow...")}}>Delete</AlertDialogAction>
+            <AlertDialogCancel onClick={()=>setConfirmText("")}>Cancel</AlertDialogCancel>
+            <AlertDialogAction disabled={confirmText!==workflowName || deleteMutation.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={()=>{toast.loading("Deleting workflow...",{id:workflowId});deleteMutation.mutate(workflowId)}}>Delete</AlertDialogAction>
         </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>
