@@ -17,3 +17,7 @@ export interface ParamProps{
     disabled?:boolean;
 } 
 
+export type AppNodeMissingInputs={
+    nodeId:string;
+    inputs:string[];
+}
