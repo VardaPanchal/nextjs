@@ -23,7 +23,7 @@ export const ExtractTextFromElementTask={
                 required:true,
               }
     
-       ],
+       ] as const,
        outputs:[
         {
             name:"Extracted Text",
@@ -31,5 +31,5 @@ export const ExtractTextFromElementTask={
 
         },
          
-    ]
+    ] as const 
 } satisfies WorkflowTask
