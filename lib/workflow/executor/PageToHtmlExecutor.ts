@@ -5,11 +5,11 @@ import { PageToHtmlTask } from "../task/PageToHtml";
 export async function PageToHtmlExecutor(environment:ExecutionEnvironment<typeof PageToHtmlTask   >):Promise<boolean>{
     try {
         const html=await environment.getPage()!.content();
-        console.log(html);
+        environment.setOutput("Html",html)
         return true;
     }
-   catch(error){
-       console.error(error);
+   catch(error:any){
+       environment.log.error(error.message);
        return false;
    }
 }
