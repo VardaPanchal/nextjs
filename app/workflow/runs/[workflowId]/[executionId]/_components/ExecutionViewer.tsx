@@ -11,7 +11,7 @@ import { ExecutionPhaseStatus, WorkflowExecutionStatus } from '@/types/workflow'
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { CalendarIcon, CircleDashedIcon, ClockIcon, CoinsIcon, Loader2Icon, LucideIcon, WorkflowIcon } from 'lucide-react';
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import {Card,CardContent,CardDescription,CardHeader,CardTitle} from "@/components/ui/card";
 import { Input } from '@/components/ui/input';
 import { ExecutionLog } from '@prisma/client';
@@ -43,6 +43,23 @@ export default function ExecutionViewer({initialData,}:{initialData:ExecutionDat
   })
 
   const isRunning=query.data?.status===WorkflowExecutionStatus.RUNNING; 
+
+  useEffect(()=>{
+      const phases=query.data?.phases || [];
+      if (isRunning){
+        const phasesToSelect=phases.toSorted((a,b)=>
+        a.startedAt!>b.startedAt! ?-1:1
+      )[0];
+       
+      setSelectedPhase(phasesToSelect.id);
+      return;
+      }
+      const phasesToSelect=phases.toSorted((a,b)=>
+        a.completedAt!>b.completedAt! ?-1:1
+    )[0];
+
+    setSelectedPhase(phasesToSelect.id);
+  },[isRunning, query.data?.phases])  
   const duration=DatesToDurationString(
     query.data?.completedAt,
     query.data?.startedAt

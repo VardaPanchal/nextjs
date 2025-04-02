@@ -134,7 +134,7 @@ async function executeWorkflowPhase(phase: ExecutionPhase,environment:Environmen
         }
     });
     const creditsRequired=TaskRegistry[node.data.type].credits;
-    console.log(`${phase.name} with ${creditsRequired}`);
+    
 
     const success= await executePhase(phase,node,environment,LogCollector);
     
@@ -174,7 +174,7 @@ async function executePhase(phase:ExecutionPhase,node:AppNode,environment:Enviro
    const runFn=ExecutorRegistry[node.data.type];
    if(!runFn){
     return false;
-   }
+   } 
    const ExecutionEnvironment:ExecutionEnvironment<any>=createExecutionEnvironment(node,environment,LogCollector);
    return await runFn(ExecutionEnvironment);   
 }
@@ -225,5 +225,20 @@ function createExecutionEnvironment(node:AppNode,environment:Environment,LogColl
 async function cleanupEnvironment(environment:Environment){
     if (environment.browser){
         await environment.browser.close().catch((err)=>console.error("cannot close browser",err))
+    }
+}
+
+async function decrementCredits(userId:string,amount:number,LogCollector:LogCollector){
+    try{
+        await prisma.userBalance.update({
+            where:{userId,credits:{gte:amount}},
+            data:{credits:{decrement:amount}},
+        });
+        return true;
+
+    }catch(error){
+      console.error(error);
+      LogCollector.error("insufficient balance");
+      return false;
     }
 }
