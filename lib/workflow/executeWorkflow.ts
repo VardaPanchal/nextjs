@@ -35,7 +35,8 @@ export async function ExecuteWorkflow(executionId:string){
     let executionFailed=false;
     for (const phase of execution.phases){
       
-      const phaseExecution=await executeWorkflowPhase(phase,environment,edges);
+      const phaseExecution=await executeWorkflowPhase(phase,environment,edges,execution.userId);
+      creditsConsumed+=phaseExecution.creditsConsumed;
       if (!phaseExecution.success){
         executionFailed=true;
         break;
@@ -119,7 +120,7 @@ async function finalizeWorkflowExecution(
     })
 }
 
-async function executeWorkflowPhase(phase: ExecutionPhase,environment:Environment,edges:Edge[]){
+async function executeWorkflowPhase(phase: ExecutionPhase,environment:Environment,edges:Edge[],userId:string){
     const LogCollector=createLogCollector();
     const startedAt=new Date();
     const node=JSON.parse(phase.node) as AppNode;
@@ -134,17 +135,21 @@ async function executeWorkflowPhase(phase: ExecutionPhase,environment:Environmen
         }
     });
     const creditsRequired=TaskRegistry[node.data.type].credits;
-    
 
-    const success= await executePhase(phase,node,environment,LogCollector);
+    let success=await decrementCredits(userId,creditsRequired,LogCollector);
+    const creditsConsumed=success?creditsRequired:0;
+
+     if (success){
+        success= await executePhase(phase,node,environment,LogCollector);
+     }
     
     const outputs=environment.phases[node.id].outputs;
-    await finalizePhase(phase.id,success,outputs,LogCollector);
-    return {success};
+    await finalizePhase(phase.id,success,outputs,LogCollector,creditsConsumed);
+    return {success,creditsConsumed};
 
 }
 
-async function finalizePhase(phaseId:string,success:boolean,outputs:any,LogCollector:LogCollector){
+async function finalizePhase(phaseId:string,success:boolean,outputs:any,LogCollector:LogCollector,creditsConsumed:number){
     const finalStatus=success
     ? ExecutionPhaseStatus.COMPLETED
     :ExecutionPhaseStatus.FAILED;
@@ -157,6 +162,7 @@ async function finalizePhase(phaseId:string,success:boolean,outputs:any,LogColle
             status:finalStatus,
             completedAt:new Date(),
             outputs:JSON.stringify(outputs),
+            creditsConsumed,
             logs:{
                 createMany:{
                     data:LogCollector.getAll().map(log=>({
@@ -237,8 +243,7 @@ async function decrementCredits(userId:string,amount:number,LogCollector:LogColl
         return true;
 
     }catch(error){
-      console.error(error);
       LogCollector.error("insufficient balance");
       return false;
     }
-}
+} 

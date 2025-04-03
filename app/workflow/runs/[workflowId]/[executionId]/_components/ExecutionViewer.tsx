@@ -26,6 +26,7 @@ import {
 import { cn } from '@/lib/utils';
 import { LogLevel } from '@/types/log';
 import PhaseStatusBadge from './PhaseStatusBadge';
+import ReactCountUpWrapper from '@/components/ReactCountUpWrapper';
 
 type ExecutionData= Awaited<ReturnType<typeof GetWorkflowExecutionWithPhases>>;
 export default function ExecutionViewer({initialData,}:{initialData:ExecutionData}) {
@@ -68,8 +69,8 @@ export default function ExecutionViewer({initialData,}:{initialData:ExecutionDat
   const creditsConsumed= GetPhasesTotalCost(query.data?.phases || [])
 
   return <div className='flex w-full h-full'><aside className='w-[440px] min-w-[440px] max-w-[440px] border-r-2 border-separate flex flex-grow flex-col overflow-hidden'>
-    <div className='py-4 px-2'><ExecutionLabel icon={CircleDashedIcon} label="Status" value={query.data?.status}/><ExecutionLabel icon={CalendarIcon} label="Started at" value= {<span className='lowercase'>{query.data?.startedAt ? formatDistanceToNow(new Date(query.data?.startedAt),{addSuffix:true}):"-"}</span>}/>
-    <ExecutionLabel icon={ClockIcon} label="Duration" value={duration ? (duration):(<Loader2Icon className='animate-spin'size={20}/>)}/><ExecutionLabel icon={CoinsIcon} label="Credits consumed" value={creditsConsumed}/></div><Separator/><div className='flex justify-center items-center py-2 px-4'><div className='text-muted-foreground flex items-center gap-2'><WorkflowIcon size={20} className="stroke-muted-foreground/80"/><span className='font-semibold'>Phases</span></div></div>
+    <div className='py-4 px-2'><ExecutionLabel icon={CircleDashedIcon} label="Status" value={<div className='font-semibold capitalize flex gap-2 items-center'><PhaseStatusBadge status={query.data?.status as ExecutionPhaseStatus}/><span>{query.data?.status}</span></div>}/><ExecutionLabel icon={CalendarIcon} label="Started at" value= {<span className='lowercase'>{query.data?.startedAt ? formatDistanceToNow(new Date(query.data?.startedAt),{addSuffix:true}):"-"}</span>}/>
+    <ExecutionLabel icon={ClockIcon} label="Duration" value={duration ? (duration):(<Loader2Icon className='animate-spin'size={20}/>)}/><ExecutionLabel icon={CoinsIcon} label="Credits consumed" value={<ReactCountUpWrapper value={creditsConsumed}/>}/></div><Separator/><div className='flex justify-center items-center py-2 px-4'><div className='text-muted-foreground flex items-center gap-2'><WorkflowIcon size={20} className="stroke-muted-foreground/80"/><span className='font-semibold'>Phases</span></div></div>
     <Separator/><div className='overflow-auto h-full px-2 py-4'>{query.data?.phases.map((phase,index)=>(
         <Button key={phase.id} className='w-full justify-between' variant={selectedPhase===phase.id?"secondary":"ghost"} onClick={()=>{ if (isRunning) return; setSelectedPhase(phase.id)}}><div className='flex items-center gap-2'><Badge variant={"outline"}>{index+1}</Badge><p className='font-semifold'>{phase.name}</p>
         </div>
@@ -81,7 +82,7 @@ export default function ExecutionViewer({initialData,}:{initialData:ExecutionDat
     )}
      {!isRunning && selectedPhase && phaseDetails.data && (
       <div className='flex flex-col py-4 container gap-4 overflow-auto'>
-        <div className='flex gap-2 items-center'><Badge variant={'outline'} className='space-x-4'><div className='flex gap-1 items-center'><CoinsIcon size={18} className='stroke-muted-foreground'/><span>Credits</span></div><span>TODO</span></Badge><Badge variant={'outline'} className='space-x-4'><div className='flex gap-1 items-center'><ClockIcon size={18} className='stroke-muted-foreground'/><span>Duration</span></div><span>{DatesToDurationString(phaseDetails.data.completedAt,phaseDetails.data.startedAt)||"-"}</span></Badge></div>
+        <div className='flex gap-2 items-center'><Badge variant={'outline'} className='space-x-4'><div className='flex gap-1 items-center'><CoinsIcon size={18} className='stroke-muted-foreground'/><span>Credits</span></div><span>{phaseDetails.data.creditsConsumed}</span></Badge><Badge variant={'outline'} className='space-x-4'><div className='flex gap-1 items-center'><ClockIcon size={18} className='stroke-muted-foreground'/><span>Duration</span></div><span>{DatesToDurationString(phaseDetails.data.completedAt,phaseDetails.data.startedAt)||"-"}</span></Badge></div>
         <ParameterViewer title="Inputs" subTitle="Inputs used for this phase" paramsJson={phaseDetails.data.inputs}/>
         <ParameterViewer title="Outputs" subTitle="Outputs generated this phase" paramsJson={phaseDetails.data.outputs}/>
         <LogViewer logs={phaseDetails.data.logs}/>
