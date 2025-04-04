@@ -34,7 +34,7 @@ function WorkflowCard({workflow}:{workflow:Workflow}) {
         <CardContent className='p-4 flex items-center justify-between h-[100px]'>
             <div className='flex items-center justify-end space-x-3'>
             <div className={cn("w-10 h-10 rounded-full flex items-center justify-center",statusColors[workflow.status as WorkflowStatus])}>
-                {isDraft?(<FileTextIcon className="h-5 w-5"/>):(<PlayIcon className="h-5 w-5" text-white/>)}
+                {isDraft?(<FileTextIcon className="h-5 w-5"/>):(<PlayIcon className="h-5 w-5 text-black"/>)}
                  
             </div>
             <div>
@@ -47,7 +47,7 @@ function WorkflowCard({workflow}:{workflow:Workflow}) {
                         </span>
                     )}
                 </h3>
-                <ScheduleSection isDraft={isDraft} creditsCost={workflow.creditsCost}/>
+                <ScheduleSection isDraft={isDraft} creditsCost={workflow.creditsCost} workflowId={workflow.id} cron={workflow.cron}/>
             </div>
             </div>
             <div className='flex items-center space-x-2'>
@@ -88,11 +88,11 @@ function WorkflowActions({workflowName,workflowId}:{workflowId:string; workflowN
     );
 }
 
-function ScheduleSection({isDraft,creditsCost}:{isDraft:boolean,creditsCost:number}){
+function ScheduleSection({isDraft,creditsCost,workflowId,cron}:{isDraft:boolean,creditsCost:number,workflowId:string,cron:string | null;}){
     if (isDraft) return null;
     return (<div className='flex items-centre gap-2'>
         <CornerDownRightIcon className='h-4 w-4 text-muted-foreground'/>
-        <SchedularDialog/>
+        <SchedularDialog workflowId={workflowId} cron={cron} key={`${cron}-${workflowId}`}/>
         <MoveRightIcon className='h-4 w-4 text-muted-foreground'/><TooltipWrapper content="Credit consumption for full run">
             <div className='flex itemscenter gap-3'>
                 <Badge variant={"outline"} className="space-x-2 text-muted-foreground rounded-sm">

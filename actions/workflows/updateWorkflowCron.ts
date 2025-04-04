@@ -2,7 +2,9 @@
 
 import prisma from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
-const cronParser = require('cron-parser');
+import { revalidatePath } from "next/cache";
+import { CronExpressionParser } from 'cron-parser';
+
 
 export async function UpdateWorkflowCron({
   id,
@@ -18,16 +20,18 @@ export async function UpdateWorkflowCron({
   }
   
   try {
-    const interval = cronParser.parseExpression(cron, { utc: true });
-    return await prisma.workflow.update({
+    const interval = CronExpressionParser.parse(cron);
+     await prisma.workflow.update({
       where: { id, userId },
       data: {
         cron,
         nextRunAt: interval.next().toDate(),
-      }
+      } 
     });
   } catch (error: any) {
+    console.log(error, "ertrr")
     console.error(error.message);
     throw new Error("invalid cron expression");
   }
+  revalidatePath("/workflows")
 }
